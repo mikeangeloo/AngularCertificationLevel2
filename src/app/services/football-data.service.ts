@@ -13,7 +13,6 @@ export class FootballDataService {
   private readonly API_KEY = 'b887fa32a795d9949334a48e6698785e'
   private readonly API_HOST = 'v3.football.api-sports.io'
   private readonly API_URL = 'https://v3.football.api-sports.io'
-  //private readonly API_URL = 'https://54248bd0-a803-4942-b8a0-3779a328cac0.mock.pstmn.io'
   private readonly CUSTOM_HEADERS = new HttpHeaders({
     'x-rapidapi-key': this.API_KEY,
     'x-rapidapi-host': this.API_HOST,

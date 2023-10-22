@@ -3,7 +3,7 @@
 <div class="d-flex justify-content-center py-3">
   <ul class="nav nav-pills">
     <li class="nav-item" *ngFor="let country of countries">
-      <span id="{{ country  + 'Select'}}" (click)="loadCountryStandings(country.name)" class="nav-link active"
+      <span id="{{ country.name  + 'Select'}}" (click)="loadCountryStandings(country.name)" class="nav-link"
         [ngClass]="{'active': country.selected}">
         {{ country.name | titlecase }}
       </span>
