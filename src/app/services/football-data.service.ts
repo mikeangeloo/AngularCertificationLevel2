@@ -1,6 +1,6 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http'
 import { Injectable } from '@angular/core'
-import { Observable, map, of } from 'rxjs'
+import { Observable, map, of, tap } from 'rxjs'
 import { Country } from '../shared/interfaces/country.interface'
 import { FixturesFaceToFace } from '../shared/interfaces/fixtures-face-to-face.interface'
 import { League } from '../shared/interfaces/league.interface'
@@ -12,25 +12,39 @@ import { Standing } from '../shared/interfaces/standing.interface'
 export class FootballDataService {
   private readonly API_KEY = 'b887fa32a795d9949334a48e6698785e'
   private readonly API_HOST = 'v3.football.api-sports.io'
-  //private readonly API_URL = 'https://v3.football.api-sports.io'
-  private readonly API_URL = 'https://54248bd0-a803-4942-b8a0-3779a328cac0.mock.pstmn.io'
-  private readonly CUSTOM_HEADERS = new HttpHeaders()
+  private readonly API_URL = 'https://v3.football.api-sports.io'
+  //private readonly API_URL = 'https://54248bd0-a803-4942-b8a0-3779a328cac0.mock.pstmn.io'
+  private readonly CUSTOM_HEADERS = new HttpHeaders({
+    'x-rapidapi-key': this.API_KEY,
+    'x-rapidapi-host': this.API_HOST,
+  })
   private readonly LOCAL_CACHE = 'apiCache'
 
-  constructor(private http: HttpClient) {
-    this.CUSTOM_HEADERS.append('x-rapidapi-key', this.API_KEY)
-    this.CUSTOM_HEADERS.append('x-rapidapi-host', this.API_HOST)
-  }
+  private loadedAPI: LoadedAPI[] = []
+
+  constructor(private http: HttpClient) {}
 
   public getCountries(countryNames?: string[], countrySelected?: string): Observable<Country[]> {
     const cachedData = this.returnFromApiCache<[], ContryResponse>([], 'countries')
     let apiCall = this.http.get<FootballApiResponse<[], ContryResponse>>(
-      `${this.API_URL}/countries`
+      `${this.API_URL}/countries`,
+      { headers: this.CUSTOM_HEADERS }
     )
+
     if (cachedData) {
       apiCall = of(cachedData)
+      console.log('cachedData countries', cachedData)
     }
     return apiCall.pipe(
+      tap((data) => {
+        if (!cachedData) {
+          this.saveToApiCache<[], ContryResponse>(
+            { parameters: [], response: data.response },
+            'countries'
+          )
+        }
+        this.loadedAPI.push({ route: 'countries', loaded: true })
+      }),
       map((data) => {
         const mappedCountries = data.response.map((country: ContryResponse) => {
           return {
@@ -52,26 +66,43 @@ export class FootballDataService {
       name: leagueName,
       country,
     }
-    return this.http
-      .get<FootballApiResponse<typeof params, { league: LeagueResponse }>>(
-        `${this.API_URL}/leagues`,
-        { params }
-      )
-      .pipe(
-        map((data) => {
-          return data.response
-            .map((leagueData) => {
-              const league: League = {
-                name: leagueData.league.name,
-                id: leagueData.league.id,
-                type: leagueData.league.type,
-                logo: leagueData.league.logo,
-              }
-              return league
-            })
-            .filter((league) => league.name === leagueName)[0]
-        })
-      )
+
+    const cachedData = this.returnFromApiCache<typeof params, { league: LeagueResponse }>(
+      params,
+      'leagues'
+    )
+    let apiCall = this.http.get<FootballApiResponse<typeof params, { league: LeagueResponse }>>(
+      `${this.API_URL}/leagues`,
+      { headers: this.CUSTOM_HEADERS, params }
+    )
+    if (cachedData) {
+      console.log('cachedData leagues', cachedData)
+      apiCall = of(cachedData)
+    }
+
+    return apiCall.pipe(
+      tap((data) => {
+        if (!cachedData) {
+          this.saveToApiCache<typeof params, { league: LeagueResponse }>(
+            { parameters: params, response: data.response },
+            'leagues'
+          )
+        }
+      }),
+      map((data) => {
+        return data.response
+          .map((leagueData) => {
+            const league: League = {
+              name: leagueData.league.name,
+              id: leagueData.league.id,
+              type: leagueData.league.type,
+              logo: leagueData.league.logo,
+            }
+            return league
+          })
+          .filter((league) => league.name === leagueName)[0]
+      })
+    )
   }
 
   public getStandings(
@@ -83,21 +114,37 @@ export class FootballDataService {
       season,
     }
 
-    return this.http
-      .get<FootballApiResponse<typeof params, { league: LeagueResponse }>>(
-        `${this.API_URL}/standings`,
-        { params }
-      )
-      .pipe(
-        map((data) => {
-          return data.response.map((standingsData) => {
-            return {
-              league: standingsData.league,
-              standings: standingsData.league.standings[0],
-            }
-          })[0]
-        })
-      )
+    const cachedData = this.returnFromApiCache<typeof params, { league: LeagueResponse }>(
+      params,
+      'standings'
+    )
+    let apiCall = this.http.get<FootballApiResponse<typeof params, { league: LeagueResponse }>>(
+      `${this.API_URL}/standings`,
+      { headers: this.CUSTOM_HEADERS, params }
+    )
+    if (cachedData) {
+      console.log('cachedData standings', cachedData)
+      apiCall = of(cachedData)
+    }
+
+    return apiCall.pipe(
+      tap((data) => {
+        if (!cachedData) {
+          this.saveToApiCache<typeof params, { league: LeagueResponse }>(
+            { parameters: params, response: data.response },
+            'standings'
+          )
+        }
+      }),
+      map((data) => {
+        return data.response.map((standingsData) => {
+          return {
+            league: standingsData.league,
+            standings: standingsData.league.standings[0],
+          }
+        })[0]
+      })
+    )
   }
 
   public getFixtureFaceToFace(
@@ -111,68 +158,108 @@ export class FootballDataService {
       team: teamId,
     }
 
-    return this.http
-      .get<FootballApiResponse<typeof params, FixtureResponse>>(`${this.API_URL}/fixtures`, {
-        params,
-      })
-      .pipe(
-        map((data) => {
-          return data.response.map((fixturesData) => {
-            const fixturesFaceToFace: FixturesFaceToFace = {
-              home: {
-                ...fixturesData.teams.home,
-                goals: fixturesData.goals.home,
-              },
-              away: {
-                ...fixturesData.teams.away,
-                goals: fixturesData.goals.away,
-              },
-            }
-            return fixturesFaceToFace
-          })
+    const cachedData = this.returnFromApiCache<typeof params, FixtureResponse>(params, 'fixtures')
+    let apiCall = this.http.get<FootballApiResponse<typeof params, FixtureResponse>>(
+      `${this.API_URL}/fixtures`,
+      { headers: this.CUSTOM_HEADERS, params }
+    )
+    if (cachedData) {
+      console.log('cachedData fixtures', cachedData)
+      apiCall = of(cachedData)
+    }
+
+    return apiCall.pipe(
+      tap((data) => {
+        if (!cachedData) {
+          this.saveToApiCache<typeof params, FixtureResponse>(
+            { parameters: params, response: data.response },
+            'fixtures'
+          )
+        }
+      }),
+      map((data) => {
+        return data.response.map((fixturesData) => {
+          const fixturesFaceToFace: FixturesFaceToFace = {
+            home: {
+              ...fixturesData.teams.home,
+              goals: fixturesData.goals.home,
+            },
+            away: {
+              ...fixturesData.teams.away,
+              goals: fixturesData.goals.away,
+            },
+          }
+          return fixturesFaceToFace
         })
-      )
+      })
+    )
   }
 
   private returnFromApiCache<Parameters, Response>(
     requestParams: Parameters,
     apiRoute: string
-  ): FootballApiResponse<Parameters, Response> {
-    const localApiData: FootballApiResponse<Parameters, Response>[] = JSON.parse(
+  ): FootballApiResponse<Parameters, Response> | null {
+    const localApiData: LocalApiCache<Parameters, Response>[] = JSON.parse(
       localStorage.getItem(this.LOCAL_CACHE) ?? '[]'
     )
 
-    return localApiData.filter(
-      (apiCache) => apiCache.parameters === requestParams && apiRoute === apiRoute
+    const today = new Date().valueOf()
+
+    const indexCached = localApiData.findIndex(
+      (apiCache) =>
+        JSON.stringify(apiCache.data.parameters) === JSON.stringify(requestParams) &&
+        apiCache.apiRoute === apiRoute
+    )
+
+    const cachedData = localApiData.filter(
+      (apiCache) =>
+        JSON.stringify(apiCache.data.parameters) === JSON.stringify(requestParams) &&
+        apiCache.apiRoute === apiRoute
     )[0]
+
+    if (
+      indexCached !== -1 &&
+      (today > cachedData?.ttl || cachedData?.data?.response.length === 0)
+    ) {
+      localApiData.splice(indexCached, 1)
+      console.log('localApiData', JSON.stringify(localApiData))
+      localStorage.setItem(this.LOCAL_CACHE, JSON.stringify(localApiData))
+      return null
+    }
+
+    return cachedData?.data
   }
 
   private saveToApiCache<Parameters, Response>(
-    response: FootballApiResponse<Parameters, Response>,
+    response: Pick<FootballApiResponse<Parameters, Response>, 'parameters' | 'response'>,
     apiRoute: string
   ): void {
-    const localApiData: FootballApiResponse<Parameters, Response>[] = JSON.parse(
+    const localApiData: LocalApiCache<Parameters, Response>[] = JSON.parse(
       localStorage.getItem(this.LOCAL_CACHE) ?? '[]'
     )
     const indexCached = localApiData.findIndex(
-      (apiCache) => apiCache.parameters === response.parameters && apiRoute === apiRoute
+      (apiCache) =>
+        JSON.stringify(apiCache.data.parameters) === JSON.stringify(response.parameters) &&
+        apiCache.apiRoute === apiRoute
     )
 
     if (indexCached !== -1) {
       localApiData.splice(indexCached, 1)
     }
 
-    localApiData.push(response)
+    const today = new Date()
+
+    localApiData.push({
+      data: response,
+      apiRoute,
+      ttl: new Date().setDate(today.getDate() + 1),
+    })
+
+    localStorage.setItem(this.LOCAL_CACHE, JSON.stringify(localApiData))
   }
 }
 export interface FootballApiResponse<Parameters, Response> {
-  get: string
   parameters: Parameters
-  results: number
-  paging: {
-    current: 1
-    total: 1
-  }
   response: Array<Response>
 }
 
@@ -236,7 +323,13 @@ export interface FixtureResponse {
   }
 }
 
-export interface LocalApiCache<Params> {
-  params: Params
+export interface LocalApiCache<Parameters, Response> {
+  data: Pick<FootballApiResponse<Parameters, Response>, 'parameters' | 'response'>
   apiRoute: string
+  ttl: number
+}
+
+export interface LoadedAPI {
+  route: string
+  loaded: boolean
 }

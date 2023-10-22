@@ -16,6 +16,29 @@ export class StandingsComponent implements OnInit {
   public countries: Country[] = []
   public standings: Standing[] = []
 
+  private countriesToFetch = [
+    {
+      country: 'England',
+      leagueName: 'Premier League',
+    },
+    {
+      country: 'Spain',
+      leagueName: 'La Liga',
+    },
+    {
+      country: 'Germany',
+      leagueName: 'Bundesliga',
+    },
+    {
+      country: 'France',
+      leagueName: 'Ligue 1',
+    },
+    {
+      country: 'Italy',
+      leagueName: 'Serie A',
+    },
+  ]
+
   constructor(private footBallService: FootballDataService, private router: Router) {}
 
   ngOnInit(): void {
@@ -23,34 +46,40 @@ export class StandingsComponent implements OnInit {
   }
 
   loadCountries() {
-    const searchCountries = ['England', 'Spain', 'Germany', 'France', 'Italy']
+    const searchCountries = this.countriesToFetch.map((countriesInfo) => countriesInfo.country)
     this.footBallService
       .getCountries(searchCountries)
       .pipe(take(1))
       .subscribe((contries) => {
         this.countries = contries
-        this.loadCountryStandings(this.countries[0].name)
+        if (this.countries[0]?.name) {
+          this.loadCountryStandings(this.countries[0].name)
+        }
       })
   }
 
   loadCountryStandings(countryName: string) {
     this.markCountrySelection(countryName)
 
-    const leagueName = 'Premier League'
+    const leagueName = this.countriesToFetch.find(
+      (countryInfo) => countryInfo.country === countryName
+    )?.leagueName
     const season = new Date().getFullYear().toString()
-    this.footBallService
-      .getLeague(countryName, leagueName)
-      .pipe(
-        take(1),
-        mergeMap((league) => {
-          return this.footBallService.getStandings(league.id, season)
-        }),
-        tap((standingsResponse) => {
-          console.log('standingsResponse', standingsResponse.standings)
-          this.standings = standingsResponse.standings
-        })
-      )
-      .subscribe()
+    if (leagueName) {
+      this.footBallService
+        .getLeague(countryName, leagueName)
+        .pipe(
+          take(1),
+          mergeMap((league) => {
+            return this.footBallService.getStandings(league.id, season)
+          }),
+          tap((standingsResponse) => {
+            console.log('standingsResponse', standingsResponse.standings)
+            this.standings = standingsResponse.standings
+          })
+        )
+        .subscribe()
+    }
   }
 
   public goToFixturesFaceToFace(teamId: number) {
