@@ -1,0 +1,41 @@
+<h3 class="text-center">{{ title | uppercase }}</h3> <!-- Page Header Title -->
+
+<div class="card">
+  <div class="card-body">
+    <ng-container *ngFor="let fixture of fixtureFaceToFace; let last = last;">
+      <div class="row team-score" [class.boder-bottom]="!last">
+        <div class="col-3 content">
+          <div class="team">
+            <img src="{{ fixture.home.logo }}" alt="Home team logo">
+            <span class="padding-left">{{ fixture.home.name }}</span>
+          </div>
+        </div>
+        <div class="col-6 content">
+          <div class="score">
+            <span>
+              {{ fixture.home.goals }}
+            </span>
+            <span>
+              -
+            </span>
+            <span>
+              {{ fixture.away.goals }}
+            </span>
+          </div>
+        </div>
+        <div class="col-3 content">
+          <div class="team">
+            <span class="padding-right">{{ fixture.away.name }}</span>
+            <img src="{{ fixture.away.logo }}" alt="Away team logo">
+          </div>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+</div>
+<br>
+<div class="row">
+  <div class="col-12">
+    <button class="btn btn-primary" (click)="goBack()">Go Back</button>
+  </div>
+</div>

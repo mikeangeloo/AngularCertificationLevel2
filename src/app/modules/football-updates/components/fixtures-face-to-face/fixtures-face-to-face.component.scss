@@ -1,0 +1,36 @@
+.team-score {
+  padding: 1rem 0 1rem;
+
+  margin-bottom: 0.5rem;
+  .content {
+    align-self: center;
+  }
+  .team {
+    display: flex;
+    align-items: center;
+    img {
+      width: 35%;
+    }
+    span {
+      width: 100%;
+    }
+  }
+
+  .score {
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+  }
+}
+
+.boder-bottom {
+  border-bottom: 1px solid #cdcaca;
+}
+
+.padding-left {
+  padding-left: 1rem;
+}
+
+.padding-right {
+  padding-right: 1rem;
+}
