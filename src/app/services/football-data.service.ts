@@ -179,6 +179,11 @@ export class FootballDataService {
       map((data) => {
         return data.response.map((fixturesData) => {
           const fixturesFaceToFace: FixturesFaceToFace = {
+            league: {
+              id: fixturesData.league.id,
+              name: fixturesData.league.name,
+              country: fixturesData.league.country,
+            },
             home: {
               ...fixturesData.teams.home,
               goals: fixturesData.goals.home,
@@ -271,8 +276,8 @@ export interface ContryResponse {
 export interface LeagueResponse {
   id: number
   name: string
-  type: string
   logo: string
+  type: string
   standings: [StandingsResponse[]]
 }
 
@@ -302,6 +307,11 @@ export interface StandingsResponse {
 }
 
 export interface FixtureResponse {
+  league: {
+    id: number
+    name: string
+    country: string
+  }
   teams: {
     home: {
       id: number

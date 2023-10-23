@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core'
 import { Router } from '@angular/router'
 import { mergeMap, take, tap } from 'rxjs'
 import { FootballDataService } from '../../../../services/football-data.service'
+import { FootballUpdatesService } from '../../../../services/football-updates.service'
 import { Country } from '../../../../shared/interfaces/country.interface'
 import { Standing } from '../../../../shared/interfaces/standing.interface'
 
@@ -11,8 +12,6 @@ import { Standing } from '../../../../shared/interfaces/standing.interface'
   styleUrls: ['./standings.component.scss'],
 })
 export class StandingsComponent implements OnInit {
-  public title = 'Football Updates'
-
   public countries: Country[] = []
   public standings: Standing[] = []
 
@@ -39,9 +38,14 @@ export class StandingsComponent implements OnInit {
     },
   ]
 
-  constructor(private footBallService: FootballDataService, private router: Router) {}
+  constructor(
+    public footballUpdateService: FootballUpdatesService,
+    private footBallService: FootballDataService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
+    this.footballUpdateService.pageTitle.next('Football Updates')
     this.loadCountries()
   }
 
@@ -52,8 +56,8 @@ export class StandingsComponent implements OnInit {
       .pipe(take(1))
       .subscribe((contries) => {
         this.countries = contries
-        if (this.countries[0]?.name) {
-          this.loadCountryStandings(this.countries[0].name)
+        if (this.footballUpdateService.countrySelected) {
+          this.loadCountryStandings(this.footballUpdateService.countrySelected.value)
         }
       })
   }
@@ -74,7 +78,6 @@ export class StandingsComponent implements OnInit {
             return this.footBallService.getStandings(league.id, season)
           }),
           tap((standingsResponse) => {
-            console.log('standingsResponse', standingsResponse.standings)
             this.standings = standingsResponse.standings
           })
         )
@@ -83,12 +86,18 @@ export class StandingsComponent implements OnInit {
   }
 
   public goToFixturesFaceToFace(teamId: number) {
-    this.router.navigate(['football-updates/fixtures-face-to-face', teamId])
+    const countryNameSelected = this.getCountrySelected().name
+    this.footballUpdateService.countrySelected.next(countryNameSelected)
+    this.router.navigate(['football-updates/fixtures-face-to-face', countryNameSelected, teamId])
   }
 
   private markCountrySelection(countryName: string) {
     for (let country of this.countries) {
       country.selected = country.name === countryName
     }
+  }
+
+  private getCountrySelected(): Country {
+    return this.countries.filter((country) => country.selected)[0]
   }
 }

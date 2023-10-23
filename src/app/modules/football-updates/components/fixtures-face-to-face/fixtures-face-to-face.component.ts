@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core'
 import { ActivatedRoute, Router } from '@angular/router'
 import { take } from 'rxjs'
 import { FootballDataService } from '../../../../services/football-data.service'
+import { FootballUpdatesService } from '../../../../services/football-updates.service'
 import { FixturesFaceToFace } from '../../../../shared/interfaces/fixtures-face-to-face.interface'
 
 @Component({
@@ -10,20 +11,25 @@ import { FixturesFaceToFace } from '../../../../shared/interfaces/fixtures-face-
   styleUrls: ['./fixtures-face-to-face.component.scss'],
 })
 export class FixturesFaceToFaceComponent implements OnInit {
-  public title = 'Fixture Face To Face'
   public fixtureFaceToFace: FixturesFaceToFace[] = []
+
   private teamId: number = 0
+  private countryName: string = ''
 
   constructor(
+    public footballUpdateService: FootballUpdatesService,
+    private footballService: FootballDataService,
     private activedRouter: ActivatedRoute,
-    private router: Router,
-    private footBallService: FootballDataService
+    private router: Router
   ) {}
 
   ngOnInit(): void {
+    this.footballUpdateService.pageTitle.next('Fixture Face To Face')
+
     this.activedRouter.params.subscribe((params) => {
-      if (params['teamId']) {
-        this.teamId = params['teamId']
+      if (params['country-name'] && params['team-id']) {
+        this.countryName = params['country-name']
+        this.teamId = params['team-id']
         this.loadFixtureFaceToFace()
       }
     })
@@ -31,7 +37,7 @@ export class FixturesFaceToFaceComponent implements OnInit {
 
   loadFixtureFaceToFace(): void {
     const season = new Date().getFullYear().toString()
-    this.footBallService
+    this.footballService
       .getFixtureFaceToFace(season, '10', this.teamId)
       .pipe(take(1))
       .subscribe((fixtureFaceToFace) => {
@@ -40,6 +46,7 @@ export class FixturesFaceToFaceComponent implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigateByUrl('football-updates')
+    this.footballUpdateService.countrySelected.next(this.countryName)
+    this.router.navigate(['football-updates'])
   }
 }

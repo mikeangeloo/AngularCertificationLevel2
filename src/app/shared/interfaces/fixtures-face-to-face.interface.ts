@@ -1,4 +1,9 @@
 export interface FixturesFaceToFace {
+  league: {
+    id: number
+    name: string
+    country: string
+  }
   home: {
     id: number
     name: string

@@ -19,7 +19,7 @@ const routes: Routes = [
         component: StandingsComponent,
       },
       {
-        path: 'fixtures-face-to-face/:teamId',
+        path: 'fixtures-face-to-face/:country-name/:team-id',
         component: FixturesFaceToFaceComponent,
       },
     ],
