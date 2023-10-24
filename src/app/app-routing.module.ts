@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core'
 import { RouterModule, Routes } from '@angular/router'
+import { PageNotFoundComponent } from './shared/components/page-not-found/page-not-found.component'
 
 const routes: Routes = [
   {
@@ -13,6 +14,10 @@ const routes: Routes = [
       import('./modules/football-updates/football-updates.module').then(
         (footballModule) => footballModule.FootballUpdatesModule
       ),
+  },
+  {
+    path: '**',
+    component: PageNotFoundComponent,
   },
 ]
 

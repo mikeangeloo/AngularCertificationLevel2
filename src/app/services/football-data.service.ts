@@ -1,24 +1,20 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http'
+import { HttpClient } from '@angular/common/http'
 import { Injectable } from '@angular/core'
 import { Observable, map, of, tap } from 'rxjs'
 import { Country } from '../shared/interfaces/country.interface'
 import { FixturesFaceToFace } from '../shared/interfaces/fixtures-face-to-face.interface'
 import { League } from '../shared/interfaces/league.interface'
 import { Standing } from '../shared/interfaces/standing.interface'
+import { DateHandlerUtil } from '../shared/utils/date-handler.util'
 
 @Injectable({
   providedIn: 'root',
 })
 export class FootballDataService {
-  private readonly API_KEY = 'b887fa32a795d9949334a48e6698785e'
-  private readonly API_HOST = 'v3.football.api-sports.io'
-  private readonly API_URL = 'https://v3.football.api-sports.io'
-  private readonly CUSTOM_HEADERS = new HttpHeaders({
-    'x-rapidapi-key': this.API_KEY,
-    'x-rapidapi-host': this.API_HOST,
-  })
-  private readonly LOCAL_CACHE = 'apiCache'
+  // private readonly API_URL = 'https://v3.football.api-sports.io'
+  private readonly API_URL = 'https://54248bd0-a803-4942-b8a0-3779a328cac0.mock.pstmn.io'
 
+  private readonly LOCAL_CACHE = 'apiCache'
   private loadedAPI: LoadedAPI[] = []
 
   constructor(private http: HttpClient) {}
@@ -26,8 +22,7 @@ export class FootballDataService {
   public getCountries(countryNames?: string[], countrySelected?: string): Observable<Country[]> {
     const cachedData = this.returnFromApiCache<[], ContryResponse>([], 'countries')
     let apiCall = this.http.get<FootballApiResponse<[], ContryResponse>>(
-      `${this.API_URL}/countries`,
-      { headers: this.CUSTOM_HEADERS }
+      `${this.API_URL}/countries`
     )
 
     if (cachedData) {
@@ -71,8 +66,7 @@ export class FootballDataService {
       'leagues'
     )
     let apiCall = this.http.get<FootballApiResponse<typeof params, { league: LeagueResponse }>>(
-      `${this.API_URL}/leagues`,
-      { headers: this.CUSTOM_HEADERS, params }
+      `${this.API_URL}/leagues`
     )
     if (cachedData) {
       console.log('cachedData leagues', cachedData)
@@ -118,8 +112,7 @@ export class FootballDataService {
       'standings'
     )
     let apiCall = this.http.get<FootballApiResponse<typeof params, { league: LeagueResponse }>>(
-      `${this.API_URL}/standings`,
-      { headers: this.CUSTOM_HEADERS, params }
+      `${this.API_URL}/standings`
     )
     if (cachedData) {
       console.log('cachedData standings', cachedData)
@@ -159,8 +152,7 @@ export class FootballDataService {
 
     const cachedData = this.returnFromApiCache<typeof params, FixtureResponse>(params, 'fixtures')
     let apiCall = this.http.get<FootballApiResponse<typeof params, FixtureResponse>>(
-      `${this.API_URL}/fixtures`,
-      { headers: this.CUSTOM_HEADERS, params }
+      `${this.API_URL}/fixtures`
     )
     if (cachedData) {
       console.log('cachedData fixtures', cachedData)
@@ -207,7 +199,7 @@ export class FootballDataService {
       localStorage.getItem(this.LOCAL_CACHE) ?? '[]'
     )
 
-    const today = new Date().valueOf()
+    const today = DateHandlerUtil.parseTtl('today', 0)
 
     const indexCached = localApiData.findIndex(
       (apiCache) =>
@@ -251,12 +243,10 @@ export class FootballDataService {
       localApiData.splice(indexCached, 1)
     }
 
-    const today = new Date()
-
     localApiData.push({
       data: response,
       apiRoute,
-      ttl: new Date().setDate(today.getDate() + 1),
+      ttl: DateHandlerUtil.parseTtl('hours', 2),
     })
 
     localStorage.setItem(this.LOCAL_CACHE, JSON.stringify(localApiData))

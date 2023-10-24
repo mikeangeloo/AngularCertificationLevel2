@@ -1,7 +1,7 @@
-<h3 class="text-center">{{ (footballUpdateService.pageTitle | async) | uppercase }}</h3> <!-- Page Header Title -->
+<h3 class="text-center">{{ (footballUpdateService.pageTitle$ | async) | uppercase }}</h3> <!-- Page Header Title -->
 
-<div class="card">
-  <div class="card-body">
+<div class="card" *ngIf="!loadingFixtures; else tableLoading">
+  <div class="card-body" *ngIf="!(footballUpdateService.errorMsgs$ | async)">
     <ng-container *ngFor="let fixture of fixtureFaceToFace; let last = last;">
       <div class="row team-score" [class.boder-bottom]="!last">
         <div class="col-3 content">
@@ -31,6 +31,14 @@
         </div>
       </div>
     </ng-container>
+  </div>
+</div>
+<ng-template #tableLoading>
+  <app-loading loadingTxt="Loading Standings ..."></app-loading>
+</ng-template>
+<div class="col-12" *ngIf="footballUpdateService.errorMsgs$ | async as errors">
+  <div class="alert alert-danger" role="alert">
+    <p *ngFor="let error of errors; let last = last;" [class.m-0]="last">{{ error }}</p>
   </div>
 </div>
 <br>

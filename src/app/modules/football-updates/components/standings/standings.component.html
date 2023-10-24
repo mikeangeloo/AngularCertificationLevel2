@@ -1,7 +1,7 @@
-<h3 class="text-center">{{ (footballUpdateService.pageTitle | async) | uppercase }}</h3> <!-- Page Header Title -->
+<h2 class="text-center">{{ (footballUpdateService.pageTitle$ | async) | uppercase }}</h2> <!-- Page Header Title -->
 
-<div class="d-flex justify-content-center py-3">
-  <ul class="nav nav-pills">
+<div class="d-flex justify-content-center py-3" *ngIf="!countriesLoading else loadingCountries">
+  <ul class="nav nav-pills countries-options">
     <li class="nav-item" *ngFor="let country of countries">
       <span id="{{ country.name  + 'Select'}}" (click)="loadCountryStandings(country.name)" class="nav-link"
         [ngClass]="{'active': country.selected}">
@@ -10,10 +10,22 @@
     </li>
   </ul>
 </div> <!-- Countries selection  -->
-
 <div class="row">
   <div class="col-12">
-    <table class="table table-striped table-bordered table-hover standings-table">
+    <span>Standings api last update: {{ 1698125228881 | date }}</span>
+  </div>
+</div>
+<ng-template #loadingCountries>
+  <button class="btn btn-outline-primary my-2" type="button" disabled>
+    <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+    <span role="status"> Loading Contries ...</span>
+  </button>
+</ng-template> <!-- Countries loader  -->
+
+<div class="row">
+  <div class="col-12" *ngIf="!(footballUpdateService.errorMsgs$ | async)">
+    <table class="table table-striped table-bordered table-hover standings-table"
+      *ngIf="!standingsLoading else tableLoading">
       <thead>
         <tr>
           <th scope="col"></th>
@@ -46,5 +58,15 @@
 
       </tbody>
     </table> <!-- Countries teams standings -->
+
+    <ng-template #tableLoading>
+      <app-loading loadingTxt="Loading Standings ..."></app-loading>
+    </ng-template>
+  </div>
+
+  <div class="col-12" *ngIf="footballUpdateService.errorMsgs$ | async as errors">
+    <div class="alert alert-danger" role="alert">
+      <p *ngFor="let error of errors; let last = last;" [class.m-0]="last">{{ error }}</p>
+    </div>
   </div>
 </div>
