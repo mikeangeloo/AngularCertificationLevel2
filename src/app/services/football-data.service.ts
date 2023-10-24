@@ -12,10 +12,9 @@ import { FootballUpdatesService } from './football-updates.service'
   providedIn: 'root',
 })
 export class FootballDataService {
-  // private readonly API_URL = 'https://v3.football.api-sports.io'
-  private readonly API_URL = 'https://54248bd0-a803-4942-b8a0-3779a328cac0.mock.pstmn.io'
-
+  private readonly API_URL = 'https://v3.football.api-sports.io'
   private readonly LOCAL_CACHE = 'apiCache'
+
   private loadedAPI: LoadedAPI[] = []
 
   constructor(private http: HttpClient, private footballUpdateServ: FootballUpdatesService) {}
@@ -66,7 +65,8 @@ export class FootballDataService {
       'leagues'
     )
     let apiCall = this.http.get<FootballApiResponse<typeof params, { league: LeagueResponse }>>(
-      `${this.API_URL}/leagues`
+      `${this.API_URL}/leagues`,
+      { params }
     )
     if (cachedData) {
       apiCall = of(cachedData)
@@ -111,7 +111,8 @@ export class FootballDataService {
       'standings'
     )
     let apiCall = this.http.get<FootballApiResponse<typeof params, { league: LeagueResponse }>>(
-      `${this.API_URL}/standings`
+      `${this.API_URL}/standings`,
+      { params }
     )
     if (cachedData) {
       apiCall = of(cachedData)
@@ -150,7 +151,8 @@ export class FootballDataService {
 
     const cachedData = this.returnFromApiCache<typeof params, FixtureResponse>(params, 'fixtures')
     let apiCall = this.http.get<FootballApiResponse<typeof params, FixtureResponse>>(
-      `${this.API_URL}/fixtures`
+      `${this.API_URL}/fixtures`,
+      { params }
     )
     if (cachedData) {
       apiCall = of(cachedData)
