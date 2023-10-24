@@ -224,7 +224,7 @@ export class FootballDataService {
     if (cachedData?.ttl && (apiRoute === 'standings' || apiRoute === 'fixtures')) {
       this.footballUpdateServ.dataLastCapturedInfo$.next({
         data: apiRoute,
-        timeCaptured: cachedData.ttl,
+        timeCaptured: cachedData.updatedAt,
       })
     }
 
@@ -249,16 +249,21 @@ export class FootballDataService {
     }
 
     const ttl = DateHandlerUtil.parseTtl('hours', 2)
+    const updatedAt = DateHandlerUtil.parseTtl('today', 0)
 
     localApiData.push({
       data: response,
       apiRoute,
       ttl,
+      updatedAt,
     })
 
     localStorage.setItem(this.LOCAL_CACHE, JSON.stringify(localApiData))
     if (apiRoute === 'standings' || apiRoute === 'fixtures') {
-      this.footballUpdateServ.dataLastCapturedInfo$.next({ data: apiRoute, timeCaptured: ttl })
+      this.footballUpdateServ.dataLastCapturedInfo$.next({
+        data: apiRoute,
+        timeCaptured: updatedAt,
+      })
     }
   }
 }
@@ -336,6 +341,7 @@ export interface LocalApiCache<Parameters, Response> {
   data: Pick<FootballApiResponse<Parameters, Response>, 'parameters' | 'response'>
   apiRoute: string
   ttl: number
+  updatedAt: number
 }
 
 export interface LoadedAPI {
