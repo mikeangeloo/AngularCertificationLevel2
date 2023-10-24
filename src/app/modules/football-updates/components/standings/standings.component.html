@@ -10,11 +10,7 @@
     </li>
   </ul>
 </div> <!-- Countries selection  -->
-<div class="row">
-  <div class="col-12">
-    <span>Standings api last update: {{ 1698125228881 | date }}</span>
-  </div>
-</div>
+<app-last-update></app-last-update>
 <ng-template #loadingCountries>
   <button class="btn btn-outline-primary my-2" type="button" disabled>
     <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>

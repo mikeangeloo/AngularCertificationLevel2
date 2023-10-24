@@ -1,5 +1,5 @@
 <h3 class="text-center">{{ (footballUpdateService.pageTitle$ | async) | uppercase }}</h3> <!-- Page Header Title -->
-
+<app-last-update></app-last-update>
 <div class="card" *ngIf="!loadingFixtures; else tableLoading">
   <div class="card-body" *ngIf="!(footballUpdateService.errorMsgs$ | async)">
     <ng-container *ngFor="let fixture of fixtureFaceToFace; let last = last;">

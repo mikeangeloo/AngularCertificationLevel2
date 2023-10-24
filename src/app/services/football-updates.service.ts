@@ -5,10 +5,6 @@ import { BehaviorSubject } from 'rxjs'
   providedIn: 'root',
 })
 export class FootballUpdatesService {
-  public pageTitle$ = new BehaviorSubject('')
-  public countrySelected$ = new BehaviorSubject('England')
-  public errorMsgs$ = new BehaviorSubject<Array<string> | null>(null)
-
   public readonly countriesToFetch = [
     {
       country: 'England',
@@ -31,6 +27,13 @@ export class FootballUpdatesService {
       leagueName: 'Serie A',
     },
   ]
+
+  public pageTitle$ = new BehaviorSubject('')
+  public countrySelected$ = new BehaviorSubject('England')
+  public errorMsgs$ = new BehaviorSubject<Array<string> | null>(null)
+  public dataLastCapturedInfo$ = new BehaviorSubject<{ data: string; timeCaptured: number } | null>(
+    null
+  )
 
   constructor() {}
 }

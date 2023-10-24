@@ -6,6 +6,7 @@ import { FixturesFaceToFace } from '../shared/interfaces/fixtures-face-to-face.i
 import { League } from '../shared/interfaces/league.interface'
 import { Standing } from '../shared/interfaces/standing.interface'
 import { DateHandlerUtil } from '../shared/utils/date-handler.util'
+import { FootballUpdatesService } from './football-updates.service'
 
 @Injectable({
   providedIn: 'root',
@@ -17,7 +18,7 @@ export class FootballDataService {
   private readonly LOCAL_CACHE = 'apiCache'
   private loadedAPI: LoadedAPI[] = []
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private footballUpdateServ: FootballUpdatesService) {}
 
   public getCountries(countryNames?: string[], countrySelected?: string): Observable<Country[]> {
     const cachedData = this.returnFromApiCache<[], ContryResponse>([], 'countries')
@@ -27,7 +28,6 @@ export class FootballDataService {
 
     if (cachedData) {
       apiCall = of(cachedData)
-      console.log('cachedData countries', cachedData)
     }
     return apiCall.pipe(
       tap((data) => {
@@ -69,7 +69,6 @@ export class FootballDataService {
       `${this.API_URL}/leagues`
     )
     if (cachedData) {
-      console.log('cachedData leagues', cachedData)
       apiCall = of(cachedData)
     }
 
@@ -115,7 +114,6 @@ export class FootballDataService {
       `${this.API_URL}/standings`
     )
     if (cachedData) {
-      console.log('cachedData standings', cachedData)
       apiCall = of(cachedData)
     }
 
@@ -155,7 +153,6 @@ export class FootballDataService {
       `${this.API_URL}/fixtures`
     )
     if (cachedData) {
-      console.log('cachedData fixtures', cachedData)
       apiCall = of(cachedData)
     }
 
@@ -218,9 +215,15 @@ export class FootballDataService {
       (today > cachedData?.ttl || cachedData?.data?.response.length === 0)
     ) {
       localApiData.splice(indexCached, 1)
-      console.log('localApiData', JSON.stringify(localApiData))
       localStorage.setItem(this.LOCAL_CACHE, JSON.stringify(localApiData))
       return null
+    }
+
+    if (cachedData?.ttl && (apiRoute === 'standings' || apiRoute === 'fixtures')) {
+      this.footballUpdateServ.dataLastCapturedInfo$.next({
+        data: apiRoute,
+        timeCaptured: cachedData.ttl,
+      })
     }
 
     return cachedData?.data
@@ -243,13 +246,18 @@ export class FootballDataService {
       localApiData.splice(indexCached, 1)
     }
 
+    const ttl = DateHandlerUtil.parseTtl('hours', 2)
+
     localApiData.push({
       data: response,
       apiRoute,
-      ttl: DateHandlerUtil.parseTtl('hours', 2),
+      ttl,
     })
 
     localStorage.setItem(this.LOCAL_CACHE, JSON.stringify(localApiData))
+    if (apiRoute === 'standings' || apiRoute === 'fixtures') {
+      this.footballUpdateServ.dataLastCapturedInfo$.next({ data: apiRoute, timeCaptured: ttl })
+    }
   }
 }
 export interface FootballApiResponse<Parameters, Response> {

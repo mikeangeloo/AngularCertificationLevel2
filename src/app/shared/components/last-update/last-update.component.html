@@ -1,0 +1,7 @@
+<div class="row" *ngIf="footballUpdateServ.dataLastCapturedInfo$ | async as capturedInfo">
+  <div class="col-12">
+    <p class="text-center text-dark-emphasis">{{ capturedInfo.data | titlecase }} last update: {{
+      capturedInfo.timeCaptured | date:
+      'medium':'UTC +5' }}</p>
+  </div>
+</div>

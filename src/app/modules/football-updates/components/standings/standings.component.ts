@@ -28,7 +28,6 @@ export class StandingsComponent implements OnInit, OnDestroy {
     private router: Router
   ) {
     this.destroySub$ = new Subject<boolean>()
-    console.log('here constructor')
   }
 
   ngOnInit(): void {
