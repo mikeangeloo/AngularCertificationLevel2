@@ -1,7 +1,21 @@
-<div class="row" *ngIf="footballUpdateServ.dataLastCapturedInfo$ | async as capturedInfo">
+<!-- <div class="row" *ngIf="footballUpdateServ.dataLastCapturedInfo$ | async as capturedInfo">
   <div class="col-12">
     <p class="text-center text-dark-emphasis">{{ capturedInfo.data | titlecase }} last update: {{
       capturedInfo.timeCaptured | date:
       'medium':'UTC -5' }}</p>
   </div>
+</div> -->
+
+<div class="row">
+  <div class="col-3">
+    <label class="form-label" style="color: #126efd; font-weight: 600;">Season Year</label>
+    <select class="form-select" #selectedYear (change)="setYearSelected(selectedYear.value)">
+      <option>Select a season year</option>
+      <ng-container *ngFor="let year of footballUpdateServ.getFiveSeasonYears()">
+        <option [value]="year" [selected]="footballUpdateServ.seasonSelected$.value === year">{{ year }}</option>
+      </ng-container>
+    </select>
+  </div>
 </div>
+<br>
+

@@ -10,4 +10,10 @@ export class LastUpdateComponent implements OnInit {
   constructor(public footballUpdateServ: FootballUpdatesService) {}
 
   ngOnInit(): void {}
+
+  setYearSelected(year: string) {
+    if (this.footballUpdateServ.seasonSelected$.value !== year) {
+      this.footballUpdateServ.seasonSelected$.next(year)
+    }
+  }
 }

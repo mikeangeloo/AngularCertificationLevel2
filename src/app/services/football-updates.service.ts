@@ -34,6 +34,19 @@ export class FootballUpdatesService {
   public dataLastCapturedInfo$ = new BehaviorSubject<{ data: string; timeCaptured: number } | null>(
     null
   )
+  public seasonSelected$ = new BehaviorSubject('')
 
-  constructor() {}
+  private currentYear = new Date().getFullYear()
+
+  constructor() {
+    this.seasonSelected$.next((this.currentYear - 1).toString())
+  }
+
+  getFiveSeasonYears(): string[] {
+    const years = []
+    for (let i = 0; i <= 4; i++) {
+      years.push((this.currentYear - i).toString())
+    }
+    return years
+  }
 }

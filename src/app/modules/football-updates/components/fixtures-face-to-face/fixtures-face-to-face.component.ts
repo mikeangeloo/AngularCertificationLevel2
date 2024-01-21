@@ -38,6 +38,12 @@ export class FixturesFaceToFaceComponent implements OnInit, OnDestroy {
         this.loadFixtureFaceToFace()
       }
     })
+
+    this.footballUpdateService.seasonSelected$.pipe(
+      takeUntil(this.destroySub$)
+    ).subscribe(() => {
+      this.loadFixtureFaceToFace()
+    })
   }
 
   ngOnDestroy(): void {
@@ -46,7 +52,7 @@ export class FixturesFaceToFaceComponent implements OnInit, OnDestroy {
 
   loadFixtureFaceToFace(): void {
     this.loadingFixtures = true
-    const season = new Date().getFullYear().toString()
+    const season = this.footballUpdateService.seasonSelected$.value
     this.footballService
       .getFixtureFaceToFace(season, '10', this.teamId)
       .pipe(
@@ -54,7 +60,7 @@ export class FixturesFaceToFaceComponent implements OnInit, OnDestroy {
         takeUntil(this.destroySub$),
         catchError((e) => {
           this.loadingFixtures = false
-          this.footballUpdateService.errorMsgs$.next(['Something goes wrong!'])
+          this.footballUpdateService.errorMsgs$.next(['There is not information to show for this season!'])
           throw e
         })
       )

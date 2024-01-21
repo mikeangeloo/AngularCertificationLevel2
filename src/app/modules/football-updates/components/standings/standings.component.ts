@@ -34,6 +34,14 @@ export class StandingsComponent implements OnInit, OnDestroy {
     this.footballUpdateService.pageTitle$.next('Football Updates')
     this.footballUpdateService.errorMsgs$.next(null)
     this.loadCountries()
+
+    this.footballUpdateService.seasonSelected$.pipe(
+      takeUntil(this.destroySub$)
+    ).subscribe(() => {
+      if (this.footballUpdateService.countrySelected$) {
+        this.loadCountryStandings(this.footballUpdateService.countrySelected$.value)
+      }
+    })
   }
 
   ngOnDestroy(): void {
@@ -59,9 +67,9 @@ export class StandingsComponent implements OnInit, OnDestroy {
       .subscribe((contries) => {
         this.countriesLoading = false
         this.countries = contries
-        if (this.footballUpdateService.countrySelected$) {
-          this.loadCountryStandings(this.footballUpdateService.countrySelected$.value)
-        }
+        // if (this.footballUpdateService.countrySelected$) {
+        //   this.loadCountryStandings(this.footballUpdateService.countrySelected$.value)
+        // }
       })
   }
 
@@ -74,7 +82,7 @@ export class StandingsComponent implements OnInit, OnDestroy {
     const leagueName = this.footballUpdateService.countriesToFetch.find(
       (countryInfo) => countryInfo.country === countryName
     )?.leagueName
-    const season = new Date().getFullYear().toString()
+    const season = this.footballUpdateService.seasonSelected$.value
     if (leagueName) {
       this.footBallService
         .getLeague(countryName, leagueName)
@@ -90,7 +98,7 @@ export class StandingsComponent implements OnInit, OnDestroy {
           }),
           catchError((e) => {
             this.standingsLoading = false
-            this.footballUpdateService.errorMsgs$.next(['Something goes wrong!'])
+            this.footballUpdateService.errorMsgs$.next(['There is not information to show for this season!'])
             throw e
           })
         )
